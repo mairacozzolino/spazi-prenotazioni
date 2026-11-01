@@ -1,0 +1,64 @@
+services:
+  app:
+    build:
+      context: ..
+      dockerfile: deploy/Dockerfile
+    restart: unless-stopped
+    init: true
+    environment:
+      NODE_ENV: production
+      SPAZI_PUBLIC_URL: https://${SPAZI_DOMAIN:?Set SPAZI_DOMAIN in .env}
+      SPAZI_TRUSTED_PROXIES: 172.29.197.2
+      SPAZI_DEMO: "0"
+    volumes:
+      - spazi_data:/data
+      - spazi_backups:/backups
+    networks:
+      spazi_private:
+        ipv4_address: 172.29.197.3
+    security_opt:
+      - no-new-privileges:true
+    read_only: true
+    tmpfs:
+      - /tmp
+    cap_drop:
+      - ALL
+    healthcheck:
+      test: ["CMD", "node", "-e", "fetch('http://127.0.0.1:8766/healthz').then(r=>process.exit(r.ok?0:1)).catch(()=>process.exit(1))"]
+      interval: 30s
+      timeout: 5s
+      retries: 3
+      start_period: 10s
+    # The application port is intentionally accessible only to the HTTPS proxy.
+  caddy:
+    image: caddy:2
+    restart: unless-stopped
+    ports:
+      - "80:80"
+      - "443:443"
+      - "443:443/udp"
+    environment:
+      SPAZI_DOMAIN: ${SPAZI_DOMAIN:?Set SPAZI_DOMAIN in .env}
+      ACME_EMAIL: ${ACME_EMAIL:?Set ACME_EMAIL in .env}
+    volumes:
+      - ./Caddyfile:/etc/caddy/Caddyfile:ro
+      - caddy_data:/data
+      - caddy_config:/config
+    networks:
+      spazi_private:
+        ipv4_address: 172.29.197.2
+    depends_on:
+      app:
+        condition: service_healthy
+    security_opt:
+      - no-new-privileges:true
+networks:
+  spazi_private:
+    ipam:
+      config:
+        - subnet: 172.29.197.0/24
+volumes:
+  spazi_data:
+  spazi_backups:
+  caddy_data:
+  caddy_config:

@@ -1,0 +1,55 @@
+.service-unavailable{margin:0 auto;max-width:720px;min-height:100dvh;display:flex;flex-direction:column;justify-content:center;gap:24px;padding:32px}.service-unavailable .primary{align-self:flex-start}.admin-row{flex-wrap:wrap}.admin-row .admin-account-actions{display:flex;flex-wrap:wrap;gap:10px;flex:0 1 auto}.booking-row .booking-text,.admin-row>div{overflow-wrap:anywhere}.booking-text .booking-purpose{white-space:pre-wrap}#password-reset-form{display:grid;gap:18px;margin-top:22px}#password-reset-form p{max-width:60ch}#password-reset-dialog{width:min(500px,calc(100vw - 32px))}.meeting-timer{color:var(--ink)}.plan-seat.busy:hover:not(:disabled){background:var(--ink);color:var(--paper)}#dining-occupants{scroll-margin-block:24px}#dining-occupants:focus-visible{outline:3px solid var(--focus);outline-offset:4px}@media(prefers-reduced-motion:reduce){html{scroll-behavior:auto}*,*::before,*::after{animation-duration:.01ms!important;transition-duration:.01ms!important;scroll-behavior:auto!important}}
+
+.calendar-booking-details{overflow-wrap:anywhere;white-space:normal;text-align:left;line-height:1.4}
+
+/* A quiet task surface: choose a resource, then complete its details. */
+.booking-layout>.detail-panel:not(.room-detail)>.empty-state{padding:28px 4px;max-width:52ch}
+.booking-layout>.detail-panel>.empty-state p{line-height:1.8;color:var(--muted);margin-top:12px}
+.room-detail .booking-details-form{margin-top:22px}
+textarea{font:inherit;line-height:1.6;caret-color:var(--pine);resize:vertical}
+textarea:focus-visible{outline:3px solid var(--focus);outline-offset:4px}
+input::placeholder,textarea::placeholder{color:#676c78;opacity:1}
+::selection{background:var(--sage);color:var(--pine-dark)}
+.slot,.calendar-slot,.meeting-timer,#selected-range{font-variant-numeric:tabular-nums}
+.settings-grid label,.detail-header>div,.page-header>div{min-width:0}
+.detail-header h2,.page-header h1,.sidebar-bottom strong{overflow-wrap:anywhere}
+form[aria-busy=true]{cursor:progress}
+@media(min-width:901px){.booking-layout{align-items:start}.detail-panel:has(>.empty-state){min-height:240px}}
+@media(max-width:600px){textarea{font-size:16px}.text-button{min-height:44px}.page-header h1{font-size:clamp(25px,7vw,29px)}.category-tabs button{min-height:44px}}
+/* Matching, legible symbols for resources and navigation. */
+.room-symbol{display:grid;place-items:center;width:42px;height:42px;flex:0 0 42px;background:var(--sage);border-radius:10px;color:var(--pine)}
+.room-symbol svg{width:24px;height:24px;stroke-width:1.7}
+.sidebar .nav svg{width:22px;height:22px;stroke-width:1.7}
+.room-detail-icon svg{width:42px;height:42px;stroke-width:1.6}
+.booking-row>svg{width:22px;height:22px;stroke-width:1.7}
+.room-detail .floorplan{margin:20px 0 24px}
+@media(max-width:600px){.room-symbol{width:36px;height:36px;flex-basis:36px}.room-symbol svg{width:22px;height:22px}}
+
+.booking-resource-title{display:block;padding:0;background:none;color:var(--ink);font-size:15px;font-weight:750;text-align:left;line-height:1.5;text-decoration:underline;text-decoration-color:var(--line);text-underline-offset:4px}
+.booking-resource-title:hover{color:var(--pine);text-decoration-color:currentColor}
+.booking-code-button{display:inline-flex;align-items:center;justify-content:center;min-height:40px;padding:8px 14px;margin-top:10px;background:var(--sage);color:var(--pine);border-radius:7px;font-size:13px;font-weight:700}
+.booking-code-button:hover{background:#f9dfe5}
+.booking-row.new-booking{background:#fff7f8;border-radius:10px;padding-inline:14px}
+#code-description{margin-bottom:20px;line-height:1.7;color:var(--muted)}
+.booking-success-dialog{width:min(440px,calc(100vw - 32px));padding:26px}
+.booking-success-icon{display:block;width:30px;height:30px;color:var(--pine);margin-bottom:16px}
+.booking-success-dialog h2{font-size:21px;line-height:1.35;margin-bottom:12px}
+.booking-success-dialog p{font-size:14px;line-height:1.7}
+#booking-success-location{color:var(--muted);margin-top:12px}
+.booking-success-dialog form{display:flex;justify-content:flex-end;margin-top:24px}
+.booking-success-dialog .primary{min-width:100px;min-height:44px}
+@media(max-width:600px){.booking-code-button{min-height:44px}.booking-resource-title{font-size:15px}.booking-row.new-booking{padding-inline:12px}}
+.usage-totals{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:16px;margin:24px 0}
+.usage-totals div{padding:12px 0;border-top:1px solid var(--line)}
+.usage-totals dt{color:var(--muted);font-size:13px}
+.usage-totals dd{margin:6px 0 0;font-size:26px;font-weight:750;font-variant-numeric:tabular-nums}
+.usage-table{max-width:100%;overflow:auto}
+.usage-table table{width:100%;border-collapse:collapse;font-variant-numeric:tabular-nums}
+.usage-table caption{text-align:left;margin-bottom:12px;color:var(--muted)}
+.usage-table th,.usage-table td{padding:12px;text-align:right;border-bottom:1px solid var(--line);white-space:nowrap}
+.usage-table th:first-child{text-align:left}
+@media(max-width:600px){.usage-totals{grid-template-columns:repeat(2,minmax(0,1fr))}}
+
+.usage-table th,.usage-table td{font-size:14px;color:var(--ink)}
+.usage-table thead th{background:var(--sage);color:var(--pine-dark)}
+.usage-table tbody th{background:var(--paper);font-weight:600}

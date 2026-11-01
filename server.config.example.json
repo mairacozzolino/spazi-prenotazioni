@@ -1,0 +1,5 @@
+{
+  "port": 8770,
+  "certificateFile": "certs/spazi-cert.pem",
+  "privateKeyFile": "certs/spazi-key.pem"
+}

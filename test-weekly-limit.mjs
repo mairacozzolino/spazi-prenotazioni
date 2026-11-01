@@ -1,0 +1,27 @@
+import assert from 'node:assert/strict';
+import {createInitialState,weekStart,weeklyLimitError,addDays,todayRome,validateRequest} from './dist/domain.js';
+import {findNextSlot} from './dist/scheduling.js';
+assert.equal(weekStart('2026-10-18'),'2026-10-12');
+assert.equal(weekStart('2026-10-19'),'2026-10-19');
+assert.equal(weekStart('2027-01-01'),'2026-12-28');
+const state=createInitialState();state.seeds=[];
+const monday=addDays(weekStart(todayRome()),7),sunday=addDays(monday,6),nextMonday=addDays(monday,7);
+state.settings.maxUpcoming=2; // Existing settings must not restore the former total-future limit.
+state.bookings=Array.from({length:9},(_,i)=>({id:String(i),resource:'call',date:monday,start:'08:00',end:'08:30',status:'confirmed',endedAt:new Date().toISOString()}));
+assert.equal(weeklyLimitError(state,sunday),null);
+state.bookings.push({id:'tenth',resource:'call',date:sunday,start:'08:00',end:'08:30',status:'confirmed'});
+assert.match(weeklyLimitError(state,monday),/massimo 10/);
+assert.match(weeklyLimitError(state,sunday),/massimo 10/);
+assert.equal(weeklyLimitError(state,nextMonday),null);
+assert.match(validateRequest(state,'meeting-1',{date:monday,start:'10:00',end:'10:30'}),/massimo 10/);
+assert.equal(validateRequest(state,'meeting-1',{date:nextMonday,start:'10:00',end:'10:30'}),null);
+const result=findNextSlot(state,'meeting-1',{date:monday,start:'10:00',end:'10:30'});
+assert.equal(result.request.date,nextMonday);
+assert.equal(validateRequest(state,'table-1-seat-1',{date:monday,start:'12:30',end:'13:00'}),null);
+assert.equal(findNextSlot(state,'table-1-seat-1',{date:monday,start:'12:30',end:'13:00'}).request.date,monday);
+state.bookings[0].status='cancelled';assert.equal(weeklyLimitError(state,monday),null);
+for(let i=0;i<15;i++)state.bookings.push({id:`lunch-${i}`,resource:i%2?'table-2-all':'table-1-seat-1',date:monday,start:'12:30',end:'13:00',status:'confirmed'});
+assert.equal(weeklyLimitError(state,monday),null);
+assert.equal(validateRequest(state,'meeting-1',{date:monday,start:'10:00',end:'10:30'}),null);
+state.bookings.push({id:'other-week',date:nextMonday,status:'confirmed'});assert.equal(weeklyLimitError(state,monday),null);
+console.log('Limite settimanale verificato: decima consentita, undicesima bloccata, lunedì/domenica, cambio anno, annullamenti, riunioni svolte e ricerca nella settimana successiva.');

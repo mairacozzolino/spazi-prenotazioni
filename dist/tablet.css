@@ -1,0 +1,19 @@
+#checkin-view .checkin-layout{display:flex;justify-content:center;align-items:center;min-height:65vh}
+#checkin-view .checkin-layout>.settings-form{width:100%;max-width:640px;text-align:center;padding:36px}
+#checkin-view .presence-section{display:none}
+#checkin-view .settings-form h2{font-size:32px;margin-bottom:16px}
+#checkin-view .settings-form>p{max-width:48ch;margin:0 auto 24px}
+#verify-checkin{display:grid;gap:16px;max-width:400px;margin:24px auto 0}
+#verify-checkin label{text-align:left}
+#checkin-code{text-align:center;min-height:64px}
+#checkin-result{background:transparent;border:0;padding:0;margin:28px 0 0;text-align:center}
+#checkin-result>p{margin:0 auto;max-width:50ch}
+#checkin-result .meeting-actions{margin-top:28px}
+#checkin-result .meeting-actions button{min-height:88px;width:100%;font-size:26px;font-weight:750}
+.meeting-duration-label{color:var(--muted);margin-top:28px!important}
+.meeting-timer{font-size:clamp(48px,8vw,76px);line-height:1.2;font-weight:750;font-variant-numeric:tabular-nums;margin:12px 0 28px;letter-spacing:-.02em}
+body.tablet-mode main{min-height:100dvh;display:flex;flex-direction:column}
+body.tablet-mode #checkin-view:not([hidden]){flex:1;display:flex;flex-direction:column}
+body.tablet-mode #checkin-view .checkin-layout{flex:1;min-height:0;padding:28px 0}
+body.tablet-mode .page-footer{margin-top:auto}
+@media(max-width:600px){#checkin-view .checkin-layout>.settings-form{padding:24px 18px}#checkin-view .settings-form h2{font-size:27px}#checkin-result .meeting-actions button{min-height:80px;font-size:23px}}

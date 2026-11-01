@@ -1,0 +1,11 @@
+data
+.qa
+.git
+*.sqlite*
+*.log
+*.png
+*.py
+server.config.json
+deploy/.env
+release
+node_modules

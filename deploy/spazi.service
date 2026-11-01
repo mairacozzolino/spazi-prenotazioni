@@ -1,0 +1,23 @@
+[Unit]
+Description=Spazi booking service
+After=network.target
+
+[Service]
+Type=simple
+User=spazi
+Group=spazi
+WorkingDirectory=/opt/spazi
+EnvironmentFile=/etc/spazi.env
+ExecStart=/usr/bin/node /opt/spazi/server/server.mjs
+Restart=on-failure
+RestartSec=5
+NoNewPrivileges=true
+PrivateTmp=true
+ProtectSystem=strict
+ProtectHome=true
+ReadWritePaths=/var/lib/spazi /var/backups/spazi
+UMask=0077
+TimeoutStopSec=15
+
+[Install]
+WantedBy=multi-user.target

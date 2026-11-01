@@ -1,0 +1,47 @@
+import assert from 'node:assert/strict';
+import {harness,password} from './tests/harness.mjs';
+import {createFirstAdmin,recoverAdmin} from './server/accounts.mjs';
+import {securityConfig} from './server/security.mjs';
+assert.throws(()=>securityConfig({production:true,publicUrl:''}),/SPAZI_PUBLIC_URL/);
+assert.throws(()=>securityConfig({production:true,publicUrl:'http://example.test'}),/HTTPS/);
+assert.throws(()=>securityConfig({production:true,publicUrl:'https://user:secret@example.test/path'}));
+const security={production:true,publicUrl:'https://prenotazioni.example.test',trustedProxies:['127.0.0.1']},h=await harness(security);
+const headers={Host:'prenotazioni.example.test','X-Forwarded-Proto':'https','X-Real-IP':'192.0.2.10',Origin:'https://prenotazioni.example.test'};
+const request=(actor,path,body,options={})=>h.request(actor,path,body,{...options,headers:{...headers,...options.headers}});
+try{
+  await createFirstAdmin(h.app.db,{name:'QA administrator',surname:'Collaudo',email:'admin@example.test',doorCode:password});
+  await assert.rejects(()=>createFirstAdmin(h.app.db,{name:'Second admin',surname:'Collaudo',email:'other@example.test',doorCode:password}),/esiste già/);
+  assert.equal((await h.request('guest','/session')).status,403);
+  assert.equal((await request('guest','/session',undefined,{headers:{Host:'evil.example'}})).status,403);
+  assert.equal((await request('guest','/session',undefined,{headers:{'X-Forwarded-Proto':'http'}})).status,403);
+  const session=await request('guest','/session');assert.equal(session.data.demoEnabled,false);assert.equal(session.data.setupAllowed,false);assert.equal(session.headers['strict-transport-security'],'max-age=31536000');assert.match(session.headers['content-security-policy'],/script-src 'self'/);assert.match(session.headers['permissions-policy'],/camera=\(\)/);
+  assert.equal((await request('guest','/setup',{name:'QA',email:'bad@example.test',doorCode:password})).status,403);
+  assert.equal((await request('guest','/state')).status,401);
+  assert.equal((await request('guest','/login',{name:'QA administrator',firstName:'QA administrator',surname:'Collaudo',email:'admin@example.test',doorCode:password},{headers:{Origin:'https://evil.example'}})).status,403);
+  assert.equal((await request('guest','/login',{name:'QA administrator',firstName:'QA administrator',surname:'Collaudo',email:'admin@example.test',doorCode:password},{headers:{'X-Spazi-Request':'0'}})).status,403);
+  assert.equal((await request('guest','/login',null)).status,400);
+  assert.equal((await request('guest','/login',{email:'bad@example.test',doorCode:password},{headers:{'Content-Type':'text/plain'}})).status,415);
+  assert.equal((await request('guest','/state',undefined,{method:'DELETE'})).status,405);
+  assert.equal((await request('guest','/login',undefined,{raw:'{broken',method:'POST'})).status,400);
+  assert.equal((await request('guest','/login',undefined,{raw:'x'.repeat(20001),method:'POST'})).status,413);
+  const login=await request('admin','/login',{name:'QA administrator',firstName:'QA administrator',surname:'Collaudo',email:'admin@example.test',doorCode:password});assert.equal(login.status,200);assert.match(login.headers['set-cookie'][0],/HttpOnly; SameSite=Strict/);assert.match(login.headers['set-cookie'][0],/Secure/);
+  assert.equal((await request('admin','/state')).status,200);
+  assert.equal((await request('guest','/healthz',undefined,{public:true})).status,200);
+  assert.equal((await request('guest','/../server/server.mjs',undefined,{public:true})).status,404);
+  assert.equal((await request('guest','/..%2fserver%2fserver.mjs',undefined,{public:true})).status,404);
+  assert.equal((await request('guest','/%E0%A4%A',undefined,{public:true})).status,400);
+  assert.equal((await request('guest','/data/spazi.sqlite',undefined,{public:true})).status,404);
+  assert.equal((await request('guest','/index.html',undefined,{public:true,method:'HEAD'})).status,200);
+  let blocked;for(let i=0;i<11;i++)blocked=await request('bad','/login',{email:'wrong@example.test',password:'invalid'},{headers:{'X-Real-IP':'192.0.2.30'}});assert.equal(blocked.status,429);assert.ok(Number(blocked.headers['retry-after'])>0);
+  const created=await request('admin','/admin/users',{name:'QA operator',surname:'Collaudo',email:'operator@example.test',doorCode:password,role:'OPERATOR'});assert.equal(created.status,201);
+  assert.equal((await request('operator','/login',{name:'QA operator',firstName:'QA operator',surname:'Collaudo',email:'operator@example.test',doorCode:password})).status,200);
+  let codeLimit;for(let i=0;i<31;i++)codeLimit=await request('operator','/meetings/verify',{code:'00000000'});assert.equal(codeLimit.status,429);
+  await assert.rejects(()=>recoverAdmin(h.app.db,{name:'QA operator',firstName:'QA operator',surname:'Collaudo',email:'operator@example.test',doorCode:password}),/non trovato/);
+  await recoverAdmin(h.app.db,{name:'QA administrator',firstName:'QA administrator',surname:'Collaudo',email:'admin@example.test',doorCode:password+'-recovered'});
+  assert.equal((await request('admin','/state')).status,401);
+  assert.equal((await request('admin','/login',{name:'QA administrator',firstName:'QA administrator',surname:'Collaudo',email:'admin@example.test',doorCode:password})).status,401);
+  assert.equal((await request('admin','/login',{name:'QA administrator',firstName:'QA administrator',surname:'Collaudo',email:'admin@example.test',doorCode:password+'-recovered'})).status,200);
+  h.setClock(h.clock+8*3600000+1);assert.equal((await request('admin','/state')).status,401);
+  console.log('Produzione verificata: HTTPS e host obbligatori, proxy fidato, demo disabilitata, inizializzazione locale vietata, cookie protetti, CSRF, JSON malformato, limiti richieste/codici, percorsi riservati e scadenza sessioni.');
+}finally{await h.close();}
+const untrusted=await harness({...security,trustedProxies:['192.0.2.1']});try{assert.equal((await untrusted.request('guest','/session',undefined,{headers})).status,403);}finally{await untrusted.close();}

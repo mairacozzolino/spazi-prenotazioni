@@ -1,0 +1,17 @@
+import assert from 'node:assert/strict';
+import {createInitialState,todayRome,addDays,romeInstant} from './dist/domain.js';
+import {nextOpeningRequest,findNextSlot} from './dist/scheduling.js';
+const state=createInitialState(),date=addDays(todayRome(),1);
+state.seeds=[{id:'busy',resource:'meeting-2',date,start:'12:00',end:'14:00',status:'confirmed'}];
+const result=findNextSlot(state,'meeting-2',{date,start:'12:30',end:'13:30'});
+assert.equal(result.request.start,'14:00');
+assert.equal(result.request.end,'15:00');
+state.blocks.push({date,resource:'meeting-2',reason:'Manutenzione'});
+const tomorrow=findNextSlot(state,'meeting-2',{date,start:'12:30',end:'13:30'});
+assert.equal(tomorrow.request.date,addDays(date,1));
+assert.equal(tomorrow.request.start,state.settings.open);
+const first=nextOpeningRequest(state.settings);
+assert.ok(romeInstant(first.date,first.start).getTime()>Date.now());
+state.bookings=[{resource:'meeting-1',date,start:'08:00',end:'08:30',status:'confirmed'},{resource:'call',date,start:'09:00',end:'09:30',status:'confirmed'}];
+assert.ok(findNextSlot(state,'meeting-2',{date,start:'12:30',end:'13:30'}).request);
+console.log('Orari iniziali futuri, ricerca del prossimo slot, chiusure e limiti personali verificati.');
